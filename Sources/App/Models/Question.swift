@@ -13,6 +13,9 @@ final class Question: Model, Content {
   @Field(key: "solved")
   var solved: Bool
 
+  @Enum(key: "category")
+  var category: Category
+
   @Timestamp(key: "created_at", on: .create)
   var createdAt: Date?
 
@@ -24,8 +27,9 @@ final class Question: Model, Content {
 
   init() {}
 
-  init(body: String) {
+  init(body: String, category: Category) {
     self.body = body
     self.solved = false
+    self.category = category
   }
 }
