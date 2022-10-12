@@ -28,8 +28,6 @@ enum Category: String, Codable {
       return "Sports"
     case .entertainment:
       return "Entertainment"
-    default:
-      return String(self.rawValue)
     }
   }
 }

@@ -10,5 +10,5 @@ func routes(_ app: Application) throws {
     "Ok"
   }
 
-  // try app.register(collection: TodoController())
+  try app.register(collection: QuestionController())
 }

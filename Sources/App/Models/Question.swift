@@ -27,9 +27,28 @@ final class Question: Model, Content {
 
   init() {}
 
-  init(body: String, category: Category) {
+  init(_ body: String, _ category: Category) {
     self.body = body
     self.solved = false
     self.category = category
+  }
+}
+
+struct QuestionRequest: Content {
+  var body: String
+  var category: Category
+}
+
+extension QuestionRequest: Validatable {
+  static func validations(_ validations: inout Validations) {
+    validations.add("body", as: String.self, is: !.empty)
+    validations.add("body", as: String.self, is: .count(3...255))
+    validations.add(
+      "category", as: String.self,
+      is: .in(
+        "technology", "geography", "food", "literature", "animals", "science", "music",
+        "generalKnowledge", "history", "arts", "sports", "entertainment"),
+      required: true
+    )
   }
 }
