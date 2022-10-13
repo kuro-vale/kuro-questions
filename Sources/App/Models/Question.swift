@@ -52,3 +52,26 @@ extension QuestionRequest: Validatable {
     )
   }
 }
+
+struct QuestionResponse: Content {
+  var id: String
+  var body: String
+  var category: String
+  var solved: Bool
+  var created_at: String
+  var updated_at: String
+  var url: String
+}
+
+func QuestionAssembler(_ question: Question) -> QuestionResponse {
+  let host = Environment.get("APP_HOSTNAME") ?? "127.0.0.1"
+  let dateFormatter = DateFormatter()
+  dateFormatter.dateStyle = .long
+  dateFormatter.timeStyle = .short
+
+  return QuestionResponse(
+    id: "\(question.id!)", body: question.body, category: question.category.rawValue,
+    solved: question.solved, created_at: dateFormatter.string(from: question.createdAt!),
+    updated_at: dateFormatter.string(from: question.createdAt!),
+    url: "\(host)/questions/\(question.id!)")
+}

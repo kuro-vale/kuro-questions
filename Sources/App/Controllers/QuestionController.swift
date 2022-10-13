@@ -11,16 +11,22 @@ struct QuestionController: RouteCollection {
     }
   }
 
-  func index(req: Request) async throws -> [Question] {
-    try await Question.query(on: req.db).all()
+  func index(req: Request) async throws -> [QuestionResponse] {
+    let questions = try await Question.query(on: req.db).all()
+    var response: [QuestionResponse] = []
+    for question in questions {
+      response.append(QuestionAssembler(question))
+    }
+    return response
   }
 
-  func create(req: Request) async throws -> Question {
+  func create(req: Request) async throws -> QuestionResponse {
     try QuestionRequest.validate(content: req)
     let request = try req.content.decode(QuestionRequest.self)
     let question = Question(request.body, request.category)
     try await question.save(on: req.db)
-    return question
+    let response = QuestionAssembler(question)
+    return response
   }
 
   func delete(req: Request) async throws -> HTTPStatus {
