@@ -1,33 +1,24 @@
-enum Category: String, Codable {
-  case technology, geography, food, literature, animals, science, music, generalKnowledge, history,
-    arts, sports, entertainment
+import Vapor
 
-  func simpleDescription() -> String {
-    switch self {
-    case .technology:
-      return "Technology"
-    case .geography:
-      return "Geography"
-    case .food:
-      return "Food"
-    case .literature:
-      return "Literature"
-    case .animals:
-      return "Animals"
-    case .science:
-      return "Science"
-    case .music:
-      return "Music"
-    case .generalKnowledge:
-      return "General Knowledge"
-    case .history:
-      return "History"
-    case .arts:
-      return "Arts"
-    case .sports:
-      return "Sports"
-    case .entertainment:
-      return "Entertainment"
-    }
+enum Category: String, Codable, CaseIterable {
+  case technology = "Technology"
+  case geography = "Geography"
+  case food = "Food"
+  case literature = "Literature"
+  case animals = "Animals"
+  case science = "Science"
+  case music = "Music"
+  case generalKnowledge = "General Knowledge"
+  case history = "History"
+  case arts = "Arts"
+  case sports = "Sports"
+  case entertainment = "Entertainment"
+}
+
+struct CategoryResponse: Content {
+  var name: String
+
+  init(name: String) {
+    self.name = name
   }
 }

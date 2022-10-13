@@ -10,5 +10,7 @@ func routes(_ app: Application) throws {
     "Ok"
   }
 
+  try app.register(collection: CategoryController())
+
   try app.register(collection: QuestionController())
 }

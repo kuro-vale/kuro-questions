@@ -46,8 +46,8 @@ extension QuestionRequest: Validatable {
     validations.add(
       "category", as: String.self,
       is: .in(
-        "technology", "geography", "food", "literature", "animals", "science", "music",
-        "generalKnowledge", "history", "arts", "sports", "entertainment"),
+        "Technology", "Geography", "Food", "Literature", "Animals", "Science", "Music",
+        "General Knowledge", "History", "Arts", "Sports", "Entertainment"),
       required: true
     )
   }
