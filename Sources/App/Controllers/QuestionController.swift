@@ -11,13 +11,15 @@ struct QuestionController: RouteCollection {
     }
   }
 
-  func index(req: Request) async throws -> [QuestionResponse] {
-    let questions = try await Question.query(on: req.db).all()
+  func index(req: Request) async throws -> PaginatedQuestions {
+    let questions = try await Question.query(on: req.db).filter(\.$solved == false).paginate(
+      PageRequest(page: req.query["page"] ?? 1, per: 10))
     var response: [QuestionResponse] = []
-    for question in questions {
+    for question in questions.items {
       response.append(QuestionAssembler(question))
     }
-    return response
+    return PaginatedQuestions(
+      items: response, metadata: QuestionMetadataAssembler(questions.metadata))
   }
 
   func create(req: Request) async throws -> QuestionResponse {
