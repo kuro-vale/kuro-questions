@@ -7,6 +7,14 @@ public func configure(_ app: Application) throws {
   // uncomment to serve files from /Public folder
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
+  let database_name: String
+
+  if app.environment == .testing {
+    database_name = "vapor_test"
+  } else {
+    database_name = Environment.get("DATABASE_NAME") ?? "vapor_database"
+  }
+
   app.databases.use(
     .postgres(
       hostname: Environment.get("DATABASE_HOST") ?? "localhost",
@@ -14,7 +22,7 @@ public func configure(_ app: Application) throws {
         ?? PostgresConfiguration.ianaPortNumber,
       username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
       password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-      database: Environment.get("DATABASE_NAME") ?? "vapor_database"
+      database: database_name
     ), as: .psql)
 
   app.migrations.add(CreateQuestion())
