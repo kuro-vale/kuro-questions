@@ -10,7 +10,7 @@ public func configure(_ app: Application) throws {
   let database_name: String
 
   if app.environment == .testing {
-    database_name = "vapor_test"
+    database_name = Environment.get("TEST_DATABASE_NAME") ?? "vapor_test"
   } else {
     database_name = Environment.get("DATABASE_NAME") ?? "vapor_database"
   }
@@ -26,6 +26,7 @@ public func configure(_ app: Application) throws {
     ), as: .psql)
 
   app.migrations.add(CreateQuestion())
+  app.migrations.add(CreateUser())
 
   // register routes
   try routes(app)
