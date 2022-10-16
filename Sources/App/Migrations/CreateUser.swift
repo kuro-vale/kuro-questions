@@ -9,6 +9,7 @@ struct CreateUser: AsyncMigration {
       .field("created_at", .datetime, .required)
       .field("updated_at", .datetime)
       .field("deleted_at", .datetime)
+      .unique(on: "username")
       .create()
   }
 

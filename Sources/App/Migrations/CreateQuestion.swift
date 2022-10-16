@@ -2,7 +2,7 @@ import Fluent
 
 struct CreateQuestion: AsyncMigration {
   func prepare(on database: Database) async throws {
-    try await database.enum("category")
+    let category = try await database.enum("category")
       .case("Technology")
       .case("Geography")
       .case("Food")
@@ -17,7 +17,6 @@ struct CreateQuestion: AsyncMigration {
       .case("Entertainment")
       .create()
 
-    let category = try await database.enum("category").read()
     try await database.schema("questions")
       .id()
       .field("body", .string, .required)
