@@ -1,7 +1,7 @@
 import Fluent
 import Vapor
 
-final class User: Model {
+final class User: Model, Authenticatable {
   static let schema = "users"
 
   @ID(key: .id)
@@ -47,10 +47,11 @@ extension UserRequest: Validatable {
   }
 }
 
-struct CurrentUser: Authenticatable {
+struct CurrentUser: Content {
+  var id: UUID
   var username: String
 }
 
-func UserAssembler(_ user: User) -> UserResponse {
-  return UserResponse(username: user.username, token: "TOKEN")
+func UserAssembler(_ user: User, token: String) -> UserResponse {
+  return UserResponse(username: user.username, token: token)
 }

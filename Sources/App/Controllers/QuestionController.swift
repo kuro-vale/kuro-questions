@@ -11,6 +11,7 @@ struct QuestionController: RouteCollection {
     }
   }
 
+  // GET /questions
   func index(req: Request) async throws -> PaginatedQuestions {
     let questions = try await Question.query(on: req.db).filter(\.$solved == false).paginate(
       PageRequest(page: req.query["page"] ?? 1, per: 10))
@@ -22,6 +23,7 @@ struct QuestionController: RouteCollection {
       items: response, metadata: QuestionMetadataAssembler(questions.metadata))
   }
 
+  // POST /questions
   func create(req: Request) async throws -> QuestionResponse {
     try QuestionRequest.validate(content: req)
     let request = try req.content.decode(QuestionRequest.self)
@@ -31,6 +33,7 @@ struct QuestionController: RouteCollection {
     return response
   }
 
+  // DELETE /questions/:id
   func delete(req: Request) async throws -> HTTPStatus {
     guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
     else {

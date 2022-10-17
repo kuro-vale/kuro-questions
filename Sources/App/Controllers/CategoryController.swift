@@ -6,6 +6,7 @@ struct CategoryController: RouteCollection {
     categories.get(use: index)
   }
 
+  // GET /categories
   func index(req: Request) async -> [CategoryResponse] {
     var response: [CategoryResponse] = []
     for category in Category.allCases {

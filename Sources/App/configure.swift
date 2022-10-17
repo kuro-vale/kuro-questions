@@ -1,11 +1,13 @@
 import Fluent
 import FluentPostgresDriver
+import JWT
 import Vapor
 
 // configures your application
 public func configure(_ app: Application) throws {
   // uncomment to serve files from /Public folder
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+  app.jwt.signers.use(.hs256(key: Environment.get("JWT_SECRET") ?? "vapor_secret"))
 
   let database_name: String
 
