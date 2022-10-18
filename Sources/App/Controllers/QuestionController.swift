@@ -5,6 +5,7 @@ struct QuestionController: RouteCollection {
   func boot(routes: RoutesBuilder) throws {
     let questions = routes.grouped("questions")
     questions.get(use: index)
+    questions.get("search", use: search)
     questions.post(use: create)
     questions.group(":questionID") { question in
       question.delete(use: delete)
@@ -20,7 +21,26 @@ struct QuestionController: RouteCollection {
       response.append(QuestionAssembler(question))
     }
     return PaginatedQuestions(
-      items: response, metadata: QuestionMetadataAssembler(questions.metadata))
+      items: response, metadata: ServerMetadataAssembler(questions.metadata, path: req.url.path))
+  }
+
+  // GET /questions/search?q=&category=
+  func search(req: Request) async throws -> PaginatedQuestions {
+    let body = req.query["q"] ?? ""
+    let query = Question.query(on: req.db).filter(\.$body, .custom("ilike"), "%\(body)%")
+    if let category = Category.init(rawValue: req.query["category"] ?? "") {
+      query.filter(\.$category == category)
+    }
+    let questions = try await query.paginate(
+      PageRequest(page: req.query["page"] ?? 1, per: 10))
+    var response: [QuestionResponse] = []
+    for question in questions.items {
+      response.append(QuestionAssembler(question))
+    }
+    return PaginatedQuestions(
+      items: response,
+      metadata: ServerMetadataAssembler(
+        questions.metadata, path: req.url.path, query: req.url.query ?? ""))
   }
 
   // POST /questions
