@@ -25,5 +25,4 @@ final class QuestionControllerTest: XCTestCase {
   override func tearDownWithError() throws {
     app.shutdown()
   }
-
 }
