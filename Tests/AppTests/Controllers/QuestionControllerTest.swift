@@ -58,7 +58,7 @@ final class QuestionControllerTest: XCTestCase {
     let anotherUser = try newUser(on: app.db)
     let _ = try newQuestion(category: Category.arts, on: app.db, user: anotherUser)
     // Generate token
-    let user = try newUser("testUserQuestions", "bar123",on: app.db)
+    let user = try newUser("testUserQuestions", "bar123", on: app.db)
     let question = try newQuestion(category: Category.arts, on: app.db, user: user)
     var token: String = ""
     try app.test(
