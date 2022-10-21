@@ -7,6 +7,9 @@ final class Question: Model {
   @ID(key: .id)
   var id: UUID?
 
+  @Parent(key: "user_id")
+  var user: User
+
   @Field(key: "body")
   var body: String
 
@@ -27,10 +30,11 @@ final class Question: Model {
 
   init() {}
 
-  init(_ body: String, _ category: Category) {
+  init(_ body: String, _ category: Category, _ userId: UUID) {
     self.body = body
     self.solved = false
     self.category = category
+    self.$user.id = userId
   }
 }
 

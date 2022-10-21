@@ -19,6 +19,8 @@ struct CreateQuestion: AsyncMigration {
 
     try await database.schema("questions")
       .id()
+      .field("user_id", .uuid, .required)
+      .foreignKey("user_id", references: "users", "id", onDelete: .cascade)
       .field("body", .string, .required)
       .field("solved", .bool, .required)
       .field("category", category, .required)

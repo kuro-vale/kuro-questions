@@ -6,7 +6,7 @@ struct QuestionController: RouteCollection {
     let questions = routes.grouped("questions")
     questions.get(use: index)
     questions.get("search", use: search)
-    questions.post(use: create)
+    // questions.post(use: create)
     questions.group(":questionID") { question in
       question.get(use: getOne)
       question.delete(use: delete)
@@ -54,14 +54,14 @@ struct QuestionController: RouteCollection {
   }
 
   // POST /questions
-  func create(req: Request) async throws -> QuestionResponse {
-    try QuestionRequest.validate(content: req)
-    let request = try req.content.decode(QuestionRequest.self)
-    let question = Question(request.body, request.category)
-    try await question.save(on: req.db)
-    let response = QuestionAssembler(question)
-    return response
-  }
+  // func create(req: Request) async throws -> QuestionResponse {
+  //   try QuestionRequest.validate(content: req)
+  //   let request = try req.content.decode(QuestionRequest.self)
+  //   let question = Question(request.body, request.category)
+  //   try await question.save(on: req.db)
+  //   let response = QuestionAssembler(question)
+  //   return response
+  // }
 
   // DELETE /questions/:id
   func delete(req: Request) async throws -> HTTPStatus {

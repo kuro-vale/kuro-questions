@@ -7,6 +7,9 @@ final class User: Model, Authenticatable {
   @ID(key: .id)
   var id: UUID?
 
+  @Children(for: \.$user)
+  var questions: [Question]
+
   @Field(key: "username")
   var username: String
 

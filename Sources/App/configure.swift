@@ -27,8 +27,8 @@ public func configure(_ app: Application) throws {
       database: database_name
     ), as: .psql)
 
-  app.migrations.add(CreateQuestion())
   app.migrations.add(CreateUser())
+  app.migrations.add(CreateQuestion())
 
   // Run migrations
   try app.autoMigrate().wait()
