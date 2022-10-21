@@ -4,19 +4,23 @@ import Vapor
 struct QuestionController: RouteCollection {
   func boot(routes: RoutesBuilder) throws {
     let questions = routes.grouped("questions")
+    let authorized = questions.grouped(JWTAuthenticator())
     questions.get(use: index)
     questions.get("search", use: search)
-    // questions.post(use: create)
+    authorized.get("me", use: userQuestions)
     questions.group(":questionID") { question in
+      let authorized = question.grouped(JWTAuthenticator())
       question.get(use: getOne)
-      question.delete(use: delete)
+      authorized.delete(use: delete)
     }
   }
 
   // GET /questions
   func index(req: Request) async throws -> PaginatedQuestions {
+    // Fetch Database
     let questions = try await Question.query(on: req.db).filter(\.$solved == false).paginate(
       PageRequest(page: req.query["page"] ?? 1, per: 10))
+    // Generate Response
     var response: [QuestionResponse] = []
     for question in questions.items {
       response.append(QuestionAssembler(question))
@@ -27,13 +31,38 @@ struct QuestionController: RouteCollection {
 
   // GET /questions/search?q=&category=
   func search(req: Request) async throws -> PaginatedQuestions {
+    // Get Query
     let body = req.query["q"] ?? ""
     let query = Question.query(on: req.db).filter(\.$body, .custom("ilike"), "%\(body)%")
     if let category = Category.init(rawValue: req.query["category"] ?? "") {
       query.filter(\.$category == category)
     }
+    // Fetch Database
     let questions = try await query.paginate(
       PageRequest(page: req.query["page"] ?? 1, per: 10))
+    // Generate Response
+    var response: [QuestionResponse] = []
+    for question in questions.items {
+      response.append(QuestionAssembler(question))
+    }
+    return PaginatedQuestions(
+      items: response,
+      metadata: ServerMetadataAssembler(
+        questions.metadata, path: req.url.path, query: req.url.query ?? ""))
+  }
+
+  // GET /questions/me
+  func userQuestions(req: Request) async throws -> PaginatedQuestions {
+    let user = try req.auth.require(User.self)
+    // Get Query
+    let body = req.query["q"] ?? ""
+    let query = user.$questions.query(on: req.db).filter(\.$body, .custom("ilike"), "%\(body)%")
+    if let category = Category.init(rawValue: req.query["category"] ?? "") {
+      query.filter(\.$category == category)
+    }
+    // Fetch Database
+    let questions = try await query.paginate(PageRequest(page: req.query["page"] ?? 1, per: 10))
+    // Generate Response
     var response: [QuestionResponse] = []
     for question in questions.items {
       response.append(QuestionAssembler(question))
