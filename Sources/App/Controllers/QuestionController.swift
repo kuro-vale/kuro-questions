@@ -8,6 +8,7 @@ struct QuestionController: RouteCollection {
     questions.get(use: index)
     questions.get("search", use: search)
     authorized.get("me", use: userQuestions)
+    authorized.post(use: create)
     questions.group(":questionID") { question in
       let authorized = question.grouped(JWTAuthenticator())
       question.get(use: getOne)
@@ -83,14 +84,15 @@ struct QuestionController: RouteCollection {
   }
 
   // POST /questions
-  // func create(req: Request) async throws -> QuestionResponse {
-  //   try QuestionRequest.validate(content: req)
-  //   let request = try req.content.decode(QuestionRequest.self)
-  //   let question = Question(request.body, request.category)
-  //   try await question.save(on: req.db)
-  //   let response = QuestionAssembler(question)
-  //   return response
-  // }
+  func create(req: Request) async throws -> QuestionResponse {
+    let user = try req.auth.require(User.self)
+    try QuestionRequest.validate(content: req)
+    let request = try req.content.decode(QuestionRequest.self)
+    let question = Question(request.body, request.category, user.id!)
+    try await question.save(on: req.db)
+    let response = QuestionAssembler(question)
+    return response
+  }
 
   // DELETE /questions/:id
   func delete(req: Request) async throws -> HTTPStatus {
