@@ -30,6 +30,9 @@ public func configure(_ app: Application) throws {
   app.migrations.add(CreateQuestion())
   app.migrations.add(CreateUser())
 
+  // Run migrations
+  try app.autoMigrate().wait()
+
   // register routes
   try routes(app)
 }

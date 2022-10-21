@@ -8,6 +8,7 @@ struct QuestionController: RouteCollection {
     questions.get("search", use: search)
     questions.post(use: create)
     questions.group(":questionID") { question in
+      question.get(use: getOne)
       question.delete(use: delete)
     }
   }
@@ -41,6 +42,15 @@ struct QuestionController: RouteCollection {
       items: response,
       metadata: ServerMetadataAssembler(
         questions.metadata, path: req.url.path, query: req.url.query ?? ""))
+  }
+
+  // GET /questions/:id
+  func getOne(req: Request) async throws -> QuestionResponse {
+    guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
+    else {
+      throw Abort(.notFound)
+    }
+    return QuestionAssembler(question)
   }
 
   // POST /questions
