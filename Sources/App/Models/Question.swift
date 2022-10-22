@@ -65,6 +65,7 @@ struct QuestionResponse: Content {
   var created_at: String
   var updated_at: String?
   var url: String
+  var created_by: String
 }
 
 struct PaginatedQuestions: Content {
@@ -88,5 +89,5 @@ func QuestionAssembler(_ question: Question) -> QuestionResponse {
     id: "\(question.id!)", body: question.body, category: question.category.rawValue,
     solved: question.solved, created_at: dateFormatter.string(from: question.createdAt!),
     updated_at: updated_at,
-    url: "\(host)/questions/\(question.id!)")
+    url: "\(host)/questions/\(question.id!)", created_by: question.user.username)
 }

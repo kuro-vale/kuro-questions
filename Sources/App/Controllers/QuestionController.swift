@@ -20,7 +20,7 @@ struct QuestionController: RouteCollection {
   // GET /questions
   func index(req: Request) async throws -> PaginatedQuestions {
     // Fetch Database
-    let questions = try await Question.query(on: req.db).filter(\.$solved == false).paginate(
+    let questions = try await Question.query(on: req.db).with(\.$user).filter(\.$solved == false).paginate(
       PageRequest(page: req.query["page"] ?? 1, per: 10))
     // Generate Response
     var response: [QuestionResponse] = []
@@ -35,7 +35,7 @@ struct QuestionController: RouteCollection {
   func search(req: Request) async throws -> PaginatedQuestions {
     // Get Query
     let body = req.query["q"] ?? ""
-    let query = Question.query(on: req.db).filter(\.$body, .custom("ilike"), "%\(body)%")
+    let query = Question.query(on: req.db).with(\.$user).filter(\.$body, .custom("ilike"), "%\(body)%")
     if let category = Category.init(rawValue: req.query["category"] ?? "") {
       query.filter(\.$category == category)
     }
@@ -58,7 +58,7 @@ struct QuestionController: RouteCollection {
     let user = try req.auth.require(User.self)
     // Get Query
     let body = req.query["q"] ?? ""
-    let query = user.$questions.query(on: req.db).filter(\.$body, .custom("ilike"), "%\(body)%")
+    let query = user.$questions.query(on: req.db).with(\.$user).filter(\.$body, .custom("ilike"), "%\(body)%")
     if let category = Category.init(rawValue: req.query["category"] ?? "") {
       query.filter(\.$category == category)
     }
@@ -81,6 +81,8 @@ struct QuestionController: RouteCollection {
     else {
       throw Abort(.notFound)
     }
+    // Lazy Eager Load
+    try await question.$user.load(on: req.db)
     return QuestionAssembler(question)
   }
 
@@ -91,6 +93,8 @@ struct QuestionController: RouteCollection {
     let request = try req.content.decode(QuestionRequest.self)
     let question = Question(request.body, request.category, user.id!)
     try await question.save(on: req.db)
+    // Lazy Eager Load
+    try await question.$user.load(on: req.db)
     let response = QuestionAssembler(question)
     return response
   }
@@ -103,6 +107,8 @@ struct QuestionController: RouteCollection {
     else {
       throw Abort(.notFound)
     }
+    // Lazy Eager Load
+    try await question.$user.load(on: req.db)
     // Authorize request
     if question.$user.id != user.id {
       throw Abort(.forbidden)
