@@ -1,7 +1,7 @@
 import Fluent
 import Vapor
 
-func GetAuthorizedQuestion(req: Request) async throws -> Question {
+func getAuthorizedQuestion(req: Request) async throws -> Question {
   let user = try req.auth.require(User.self)
   // Fetch database
   guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
@@ -17,7 +17,7 @@ func GetAuthorizedQuestion(req: Request) async throws -> Question {
   return question
 }
 
-func QueryQuestions(_ req: Request, _ user: User? = nil) async throws -> (
+func queryQuestions(_ req: Request, _ user: User? = nil) async throws -> (
   Page<Question>, [QuestionResponse]
 ) {
   // Get Query
@@ -38,7 +38,7 @@ func QueryQuestions(_ req: Request, _ user: User? = nil) async throws -> (
   // Generate Response
   var response: [QuestionResponse] = []
   for question in questions.items {
-    response.append(QuestionAssembler(question))
+    response.append(questionAssembler(question))
   }
   return (questions, response)
 }

@@ -21,7 +21,7 @@ struct UserController: RouteCollection {
       throw Abort(.badRequest, reason: "username already taken")
     }
     let payload = SessionToken(userId: user.id!)
-    let response = UserAssembler(user, token: try req.jwt.sign(payload))
+    let response = userAssembler(user, token: try req.jwt.sign(payload))
     return response
   }
 
@@ -32,7 +32,7 @@ struct UserController: RouteCollection {
     if let user = try await User.query(on: req.db).filter(\.$username == request.username).first() {
       if try Bcrypt.verify(request.password, created: user.password) {
         let payload = SessionToken(userId: user.id!)
-        let response = UserAssembler(user, token: try req.jwt.sign(payload))
+        let response = userAssembler(user, token: try req.jwt.sign(payload))
         return response
       }
     }

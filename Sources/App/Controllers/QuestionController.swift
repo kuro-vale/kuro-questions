@@ -27,28 +27,28 @@ struct QuestionController: RouteCollection {
     // Generate Response
     var response: [QuestionResponse] = []
     for question in questions.items {
-      response.append(QuestionAssembler(question))
+      response.append(questionAssembler(question))
     }
     return PaginatedQuestions(
-      items: response, metadata: ServerMetadataAssembler(questions.metadata, path: req.url.path))
+      items: response, metadata: serverMetadataAssembler(questions.metadata, path: req.url.path))
   }
 
   // GET /questions/search?q=&category=
   func search(req: Request) async throws -> PaginatedQuestions {
-    let (questions, response) = try await QueryQuestions(req)
+    let (questions, response) = try await queryQuestions(req)
     return PaginatedQuestions(
       items: response,
-      metadata: ServerMetadataAssembler(
+      metadata: serverMetadataAssembler(
         questions.metadata, path: req.url.path, query: req.url.query ?? ""))
   }
 
   // GET /questions/me
   func userQuestions(req: Request) async throws -> PaginatedQuestions {
     let user = try req.auth.require(User.self)
-    let (questions, response) = try await QueryQuestions(req, user)
+    let (questions, response) = try await queryQuestions(req, user)
     return PaginatedQuestions(
       items: response,
-      metadata: ServerMetadataAssembler(
+      metadata: serverMetadataAssembler(
         questions.metadata, path: req.url.path, query: req.url.query ?? ""))
   }
 
@@ -60,7 +60,7 @@ struct QuestionController: RouteCollection {
     }
     // Lazy Eager Load
     try await question.$user.load(on: req.db)
-    return QuestionAssembler(question)
+    return questionAssembler(question)
   }
 
   // POST /questions
@@ -74,13 +74,13 @@ struct QuestionController: RouteCollection {
     try await question.save(on: req.db)
     // Lazy Eager Load
     try await question.$user.load(on: req.db)
-    let response = QuestionAssembler(question)
+    let response = questionAssembler(question)
     return response
   }
 
   // PUT /questions/:id
   func update(req: Request) async throws -> QuestionResponse {
-    let question = try await GetAuthorizedQuestion(req: req)
+    let question = try await getAuthorizedQuestion(req: req)
     // Validate Request
     try QuestionRequest.validate(content: req)
     let request = try req.content.decode(QuestionRequest.self)
@@ -88,22 +88,22 @@ struct QuestionController: RouteCollection {
     question.body = request.body
     question.category = request.category
     try await question.update(on: req.db)
-    return QuestionAssembler(question)
+    return questionAssembler(question)
   }
 
   // DELETE /questions/:id
   func delete(req: Request) async throws -> HTTPStatus {
-    let question = try await GetAuthorizedQuestion(req: req)
+    let question = try await getAuthorizedQuestion(req: req)
     try await question.delete(on: req.db)
     return .noContent
   }
 
   // PATCH /questions/:id
   func resolve(req: Request) async throws -> QuestionResponse {
-    let question = try await GetAuthorizedQuestion(req: req)
+    let question = try await getAuthorizedQuestion(req: req)
     // Resolve Question
     question.solved = true
     try await question.update(on: req.db)
-    return QuestionAssembler(question)
+    return questionAssembler(question)
   }
 }

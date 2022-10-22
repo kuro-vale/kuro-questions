@@ -173,7 +173,7 @@ final class QuestionControllerTest: XCTestCase {
         XCTAssertEqual(res.status, .unauthorized)
       }
     )
-    let anotherUser = try newUser("test403" ,on: app.db)
+    let anotherUser = try newUser("test403", on: app.db)
     let anotherQuestion = try newQuestion(on: app.db, user: anotherUser)
     // 403 if user is not authorized
     try app.test(
@@ -221,7 +221,7 @@ final class QuestionControllerTest: XCTestCase {
         XCTAssertEqual(res.status, .unauthorized)
       }
     )
-    let anotherUser = try newUser("test403" ,on: app.db)
+    let anotherUser = try newUser("test403", on: app.db)
     let anotherQuestion = try newQuestion(on: app.db, user: anotherUser)
     // 403 if user is not authorized
     try app.test(
@@ -270,7 +270,7 @@ final class QuestionControllerTest: XCTestCase {
         XCTAssertEqual(res.status, .unauthorized)
       }
     )
-    let anotherUser = try newUser("test403" ,on: app.db)
+    let anotherUser = try newUser("test403", on: app.db)
     let anotherQuestion = try newQuestion(on: app.db, user: anotherUser)
     // 403 if user is not authorized
     try app.test(

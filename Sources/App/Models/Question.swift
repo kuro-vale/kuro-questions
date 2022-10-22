@@ -62,10 +62,10 @@ struct QuestionResponse: Content {
   var body: String
   var category: String
   var solved: Bool
-  var created_at: String
-  var updated_at: String?
+  var createdAt: String
+  var updatedAt: String?
   var url: String
-  var created_by: String
+  var createdBy: String
 }
 
 struct PaginatedQuestions: Content {
@@ -73,21 +73,21 @@ struct PaginatedQuestions: Content {
   var metadata: ServerMetadata
 }
 
-func QuestionAssembler(_ question: Question) -> QuestionResponse {
+func questionAssembler(_ question: Question) -> QuestionResponse {
   let host = Environment.get("APP_HOSTNAME") ?? "127.0.0.1"
   let dateFormatter = DateFormatter()
   dateFormatter.dateStyle = .long
   dateFormatter.timeStyle = .short
 
-  var updated_at: String? = dateFormatter.string(from: question.updatedAt!)
+  var updatedAt: String? = dateFormatter.string(from: question.updatedAt!)
   if question.createdAt == question.updatedAt {
-    updated_at = nil
+    updatedAt = nil
     question.updatedAt = nil
   }
 
   return QuestionResponse(
     id: "\(question.id!)", body: question.body, category: question.category.rawValue,
-    solved: question.solved, created_at: dateFormatter.string(from: question.createdAt!),
-    updated_at: updated_at,
-    url: "\(host)/questions/\(question.id!)", created_by: question.user.username)
+    solved: question.solved, createdAt: dateFormatter.string(from: question.createdAt!),
+    updatedAt: updatedAt,
+    url: "\(host)/questions/\(question.id!)", createdBy: question.user.username)
 }

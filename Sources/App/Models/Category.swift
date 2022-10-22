@@ -17,8 +17,4 @@ enum Category: String, Codable, CaseIterable {
 
 struct CategoryResponse: Content {
   var name: String
-
-  init(name: String) {
-    self.name = name
-  }
 }

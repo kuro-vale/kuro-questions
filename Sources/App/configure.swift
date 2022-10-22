@@ -9,12 +9,12 @@ public func configure(_ app: Application) throws {
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
   app.jwt.signers.use(.hs256(key: Environment.get("JWT_SECRET") ?? "vapor_secret"))
 
-  let database_name: String
+  let databaseName: String
 
   if app.environment == .testing {
-    database_name = Environment.get("TEST_DATABASE_NAME") ?? "vapor_test"
+    databaseName = Environment.get("TEST_DATABASE_NAME") ?? "vapor_test"
   } else {
-    database_name = Environment.get("DATABASE_NAME") ?? "vapor_database"
+    databaseName = Environment.get("DATABASE_NAME") ?? "vapor_database"
   }
 
   app.databases.use(
@@ -24,7 +24,7 @@ public func configure(_ app: Application) throws {
         ?? PostgresConfiguration.ianaPortNumber,
       username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
       password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-      database: database_name
+      database: databaseName
     ), as: .psql)
 
   app.migrations.add(CreateUser())

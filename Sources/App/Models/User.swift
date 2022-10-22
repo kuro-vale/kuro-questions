@@ -55,6 +55,6 @@ struct CurrentUser: Content {
   var username: String
 }
 
-func UserAssembler(_ user: User, token: String) -> UserResponse {
+func userAssembler(_ user: User, token: String) -> UserResponse {
   return UserResponse(username: user.username, token: token)
 }
