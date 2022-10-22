@@ -125,9 +125,14 @@ struct QuestionController: RouteCollection {
 
   // DELETE /questions/:id
   func delete(req: Request) async throws -> HTTPStatus {
+    let user = try req.auth.require(User.self)
     guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
     else {
       throw Abort(.notFound)
+    }
+    // Authorize request
+    if question.$user.id != user.id {
+      throw Abort(.forbidden)
     }
     try await question.delete(on: req.db)
     return .noContent
