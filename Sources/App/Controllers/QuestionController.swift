@@ -21,8 +21,9 @@ struct QuestionController: RouteCollection {
   // GET /questions
   func index(req: Request) async throws -> PaginatedQuestions {
     // Fetch Database
-    let questions = try await Question.query(on: req.db).with(\.$user).filter(\.$solved == false).paginate(
-      PageRequest(page: req.query["page"] ?? 1, per: 10))
+    let questions = try await Question.query(on: req.db).with(\.$user).filter(\.$solved == false)
+      .paginate(
+        PageRequest(page: req.query["page"] ?? 1, per: 10))
     // Generate Response
     var response: [QuestionResponse] = []
     for question in questions.items {
@@ -34,20 +35,7 @@ struct QuestionController: RouteCollection {
 
   // GET /questions/search?q=&category=
   func search(req: Request) async throws -> PaginatedQuestions {
-    // Get Query
-    let body = req.query["q"] ?? ""
-    let query = Question.query(on: req.db).with(\.$user).filter(\.$body, .custom("ilike"), "%\(body)%")
-    if let category = Category.init(rawValue: req.query["category"] ?? "") {
-      query.filter(\.$category == category)
-    }
-    // Fetch Database
-    let questions = try await query.paginate(
-      PageRequest(page: req.query["page"] ?? 1, per: 10))
-    // Generate Response
-    var response: [QuestionResponse] = []
-    for question in questions.items {
-      response.append(QuestionAssembler(question))
-    }
+    let (questions, response) = try await QueryQuestions(req)
     return PaginatedQuestions(
       items: response,
       metadata: ServerMetadataAssembler(
@@ -57,19 +45,7 @@ struct QuestionController: RouteCollection {
   // GET /questions/me
   func userQuestions(req: Request) async throws -> PaginatedQuestions {
     let user = try req.auth.require(User.self)
-    // Get Query
-    let body = req.query["q"] ?? ""
-    let query = user.$questions.query(on: req.db).with(\.$user).filter(\.$body, .custom("ilike"), "%\(body)%")
-    if let category = Category.init(rawValue: req.query["category"] ?? "") {
-      query.filter(\.$category == category)
-    }
-    // Fetch Database
-    let questions = try await query.paginate(PageRequest(page: req.query["page"] ?? 1, per: 10))
-    // Generate Response
-    var response: [QuestionResponse] = []
-    for question in questions.items {
-      response.append(QuestionAssembler(question))
-    }
+    let (questions, response) = try await QueryQuestions(req, user)
     return PaginatedQuestions(
       items: response,
       metadata: ServerMetadataAssembler(
@@ -90,8 +66,10 @@ struct QuestionController: RouteCollection {
   // POST /questions
   func create(req: Request) async throws -> QuestionResponse {
     let user = try req.auth.require(User.self)
+    // Validate Request
     try QuestionRequest.validate(content: req)
     let request = try req.content.decode(QuestionRequest.self)
+    // Create Question
     let question = Question(request.body, request.category, user.id!)
     try await question.save(on: req.db)
     // Lazy Eager Load
@@ -102,18 +80,7 @@ struct QuestionController: RouteCollection {
 
   // PUT /questions/:id
   func update(req: Request) async throws -> QuestionResponse {
-    let user = try req.auth.require(User.self)
-    // Fetch database
-    guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
-    else {
-      throw Abort(.notFound)
-    }
-    // Lazy Eager Load
-    try await question.$user.load(on: req.db)
-    // Authorize request
-    if question.$user.id != user.id {
-      throw Abort(.forbidden)
-    }
+    let question = try await GetAuthorizedQuestion(req: req)
     // Validate Request
     try QuestionRequest.validate(content: req)
     let request = try req.content.decode(QuestionRequest.self)
@@ -126,33 +93,14 @@ struct QuestionController: RouteCollection {
 
   // DELETE /questions/:id
   func delete(req: Request) async throws -> HTTPStatus {
-    let user = try req.auth.require(User.self)
-    guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
-    else {
-      throw Abort(.notFound)
-    }
-    // Authorize request
-    if question.$user.id != user.id {
-      throw Abort(.forbidden)
-    }
+    let question = try await GetAuthorizedQuestion(req: req)
     try await question.delete(on: req.db)
     return .noContent
   }
 
   // PATCH /questions/:id
   func resolve(req: Request) async throws -> QuestionResponse {
-    let user = try req.auth.require(User.self)
-    // Fetch database
-    guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
-    else {
-      throw Abort(.notFound)
-    }
-    // Lazy Eager Load
-    try await question.$user.load(on: req.db)
-    // Authorize request
-    if question.$user.id != user.id {
-      throw Abort(.forbidden)
-    }
+    let question = try await GetAuthorizedQuestion(req: req)
     // Resolve Question
     question.solved = true
     try await question.update(on: req.db)
