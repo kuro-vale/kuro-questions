@@ -11,7 +11,7 @@ struct UserController: RouteCollection {
   }
 
   // POST /auth/register
-  func register(req: Request) async throws -> UserResponse {
+  func register(req: Request) async throws -> Response {
     try UserRequest.validate(content: req)
     let request = try req.content.decode(UserRequest.self)
     let user = try User(request.username, request.password)
@@ -22,7 +22,7 @@ struct UserController: RouteCollection {
     }
     let payload = SessionToken(userId: user.id!)
     let response = userAssembler(user, token: try req.jwt.sign(payload))
-    return response
+    return try await response.encodeResponse(status: .created, for: req)
   }
 
   // POST /auth/login

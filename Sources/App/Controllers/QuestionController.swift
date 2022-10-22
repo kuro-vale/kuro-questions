@@ -64,7 +64,7 @@ struct QuestionController: RouteCollection {
   }
 
   // POST /questions
-  func create(req: Request) async throws -> QuestionResponse {
+  func create(req: Request) async throws -> Response {
     let user = try req.auth.require(User.self)
     // Validate Request
     try QuestionRequest.validate(content: req)
@@ -75,7 +75,7 @@ struct QuestionController: RouteCollection {
     // Lazy Eager Load
     try await question.$user.load(on: req.db)
     let response = questionAssembler(question)
-    return response
+    return try await response.encodeResponse(status: .created, for: req)
   }
 
   // PUT /questions/:id

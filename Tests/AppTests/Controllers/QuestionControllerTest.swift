@@ -116,7 +116,7 @@ final class QuestionControllerTest: XCTestCase {
         try req.content.encode(content)
       },
       afterResponse: { res in
-        XCTAssertEqual(res.status, .ok)
+        XCTAssertEqual(res.status, .created)
         let response = try res.content.decode(QuestionResponse.self)
         XCTAssertEqual(response.body, content["body"])
       }

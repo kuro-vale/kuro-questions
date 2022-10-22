@@ -33,7 +33,7 @@ final class UserControllerTest: XCTestCase {
         try req.content.encode(UserRequest(username: "foo", password: "bar123"))
       },
       afterResponse: { res in
-        XCTAssertEqual(res.status, .ok)
+        XCTAssertEqual(res.status, .created)
         let response = try res.content.decode(UserResponse.self)
         XCTAssertEqual(response.username, "foo")
       }
@@ -60,7 +60,7 @@ final class UserControllerTest: XCTestCase {
         try req.content.encode(UserRequest(username: "foo", password: "bar123"))
       },
       afterResponse: { res in
-        XCTAssertEqual(res.status, .ok)
+        XCTAssertEqual(res.status, .created)
         let response = try res.content.decode(UserResponse.self)
         token = response.token
       }
