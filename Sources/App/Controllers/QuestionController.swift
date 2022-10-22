@@ -12,6 +12,7 @@ struct QuestionController: RouteCollection {
     questions.group(":questionID") { question in
       let authorized = question.grouped(JWTAuthenticator())
       question.get(use: getOne)
+      authorized.put(use: update)
       authorized.delete(use: delete)
     }
   }
@@ -92,6 +93,28 @@ struct QuestionController: RouteCollection {
     try await question.save(on: req.db)
     let response = QuestionAssembler(question)
     return response
+  }
+
+  // PUT /questions/:id
+  func update(req: Request) async throws -> QuestionResponse {
+    let user = try req.auth.require(User.self)
+    // Fetch database
+    guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
+    else {
+      throw Abort(.notFound)
+    }
+    // Authorize request
+    if question.$user.id != user.id {
+      throw Abort(.forbidden)
+    }
+    // Validate Request
+    try QuestionRequest.validate(content: req)
+    let request = try req.content.decode(QuestionRequest.self)
+    // Update Question
+    question.body = request.body
+    question.category = request.category
+    try await question.update(on: req.db)
+    return QuestionAssembler(question)
   }
 
   // DELETE /questions/:id
