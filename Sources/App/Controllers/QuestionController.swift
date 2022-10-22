@@ -14,6 +14,7 @@ struct QuestionController: RouteCollection {
       question.get(use: getOne)
       authorized.put(use: update)
       authorized.delete(use: delete)
+      authorized.patch(use: resolve)
     }
   }
 
@@ -136,5 +137,25 @@ struct QuestionController: RouteCollection {
     }
     try await question.delete(on: req.db)
     return .noContent
+  }
+
+  // PATCH /questions/:id
+  func resolve(req: Request) async throws -> QuestionResponse {
+    let user = try req.auth.require(User.self)
+    // Fetch database
+    guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
+    else {
+      throw Abort(.notFound)
+    }
+    // Lazy Eager Load
+    try await question.$user.load(on: req.db)
+    // Authorize request
+    if question.$user.id != user.id {
+      throw Abort(.forbidden)
+    }
+    // Resolve Question
+    question.solved = true
+    try await question.update(on: req.db)
+    return QuestionAssembler(question)
   }
 }
