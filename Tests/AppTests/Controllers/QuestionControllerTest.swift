@@ -84,7 +84,7 @@ final class QuestionControllerTest: XCTestCase {
         XCTAssertEqual(response.items[0].body, question.body)
       }
     )
-    // 401 if not token present
+    // 401 if token is not present
     try app.test(
       .GET, "questions/me",
       afterResponse: { res in
@@ -121,7 +121,7 @@ final class QuestionControllerTest: XCTestCase {
         XCTAssertEqual(response.body, content["body"])
       }
     )
-    // 401 if not token present
+    // 401 if token is not present
     try app.test(
       .POST, "questions",
       beforeRequest: { req in
@@ -129,6 +129,60 @@ final class QuestionControllerTest: XCTestCase {
       },
       afterResponse: { res in
         XCTAssertEqual(res.status, .unauthorized)
+      }
+    )
+  }
+
+  func testUpdate() throws {
+    let content = ["body": "What is love?", "category": "General Knowledge"]
+    let user = try newUser(on: app.db)
+    let question = try newQuestion(on: app.db, user: user)
+    // Generate token
+    var token: String = ""
+    try app.test(
+      .POST, "auth/login",
+      beforeRequest: { req in
+        try req.content.encode(UserRequest(username: user.username, password: "password"))
+      },
+      afterResponse: { res in
+        let response = try res.content.decode(UserResponse.self)
+        token = response.token
+      }
+    )
+    // 200 if using a valid token
+    try app.test(
+      .PUT, "questions/\(question.id!)",
+      beforeRequest: { req in
+        req.headers.bearerAuthorization = .init(token: token)
+        try req.content.encode(content)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .ok)
+        let response = try res.content.decode(QuestionResponse.self)
+        XCTAssertEqual(response.body, content["body"])
+      }
+    )
+    // 401 if token is not present
+    try app.test(
+      .PUT, "questions/\(question.id!)",
+      beforeRequest: { req in
+        try req.content.encode(content)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .unauthorized)
+      }
+    )
+    let anotherUser = try newUser("test403" ,on: app.db)
+    let anotherQuestion = try newQuestion(on: app.db, user: anotherUser)
+    // 403 if user is not authorized
+    try app.test(
+      .PUT, "questions/\(anotherQuestion.id!)",
+      beforeRequest: { req in
+        req.headers.bearerAuthorization = .init(token: token)
+        try req.content.encode(content)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .forbidden)
       }
     )
   }

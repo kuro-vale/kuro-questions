@@ -79,7 +79,7 @@ final class UserControllerTest: XCTestCase {
       }
     )
 
-    // 401 if not token present
+    // 401 if token is not present
     try app.test(
       .GET, "auth/me",
       afterResponse: { res in
