@@ -101,6 +101,9 @@ struct QuestionController: RouteCollection {
   // PATCH /questions/:id
   func resolve(req: Request) async throws -> QuestionResponse {
     let question = try await getAuthorizedQuestion(req: req)
+    if question.solved {
+      throw Abort(.badRequest, reason: "question already solved")
+    }
     // Resolve Question
     question.solved = true
     try await question.update(on: req.db)
