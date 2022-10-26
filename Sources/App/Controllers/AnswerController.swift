@@ -18,12 +18,13 @@ struct AnswerController: RouteCollection {
     }
     // Fetch Database
     let answers = try await question.$answers.query(on: req.db).with(\.$user).with(\.$question)
+      .with(\.$voters)
       .paginate(
         PageRequest(page: req.query["page"] ?? 1, per: 10))
     // Generate Response
     var response: [AnswerResponse] = []
     for answer in answers.items {
-      try await response.append(answerAssembler(answer, req: req))
+      try await response.append(answerAssembler(answer))
     }
     return PaginatedAnswers(
       items: response, metadata: serverMetadataAssembler(answers.metadata, path: req.url.path))

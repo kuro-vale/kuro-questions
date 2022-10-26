@@ -54,10 +54,10 @@ struct PaginatedAnswers: Content {
   var metadata: ServerMetadata
 }
 
-func answerAssembler(_ answer: Answer, req: Request) async throws -> AnswerResponse {
-  // Fetch voters
-  let upvoters = try await answer.$voters.query(on: req.db).filter(\.$upvote == true).count()
-  let downvoters = try await answer.$voters.query(on: req.db).filter(\.$upvote == false).count()
+func answerAssembler(_ answer: Answer) async throws -> AnswerResponse {
+  // Count voters
+  let upvoters = answer.voters.filter { voter in voter.upvote == true }.count
+  let downvoters = answer.voters.filter { voter in voter.upvote == false }.count
   // Generate response metadata
   let host = Environment.get("APP_HOSTNAME") ?? "127.0.0.1"
   let dateFormatter = DateFormatter()
@@ -69,7 +69,7 @@ func answerAssembler(_ answer: Answer, req: Request) async throws -> AnswerRespo
     updatedAt = nil
     answer.updatedAt = nil
   }
-  
+
   return AnswerResponse(
     id: "\(answer.id!)", body: answer.body, upvotes: upvoters, downvotes: downvoters,
     createdAt: dateFormatter.string(from: answer.createdAt!), updatedAt: updatedAt,
