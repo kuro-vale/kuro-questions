@@ -36,3 +36,44 @@ final class Answer: Model {
     self.$user.id = userId
   }
 }
+
+struct AnswerResponse: Content {
+  var id: String
+  var body: String
+  var upvotes: Int
+  var downvotes: Int
+  var createdAt: String
+  var updatedAt: String?
+  var createdBy: String
+  var url: String
+  var questionUrl: String
+}
+
+struct PaginatedAnswers: Content {
+  var items: [AnswerResponse]
+  var metadata: ServerMetadata
+}
+
+func answerAssembler(_ answer: Answer, req: Request) async throws -> AnswerResponse {
+  // Fetch voters
+  let upvoters = try await answer.$voters.query(on: req.db).filter(\.$upvote == true).count()
+  let downvoters = try await answer.$voters.query(on: req.db).filter(\.$upvote == false).count()
+  // Generate response metadata
+  let host = Environment.get("APP_HOSTNAME") ?? "127.0.0.1"
+  let dateFormatter = DateFormatter()
+  dateFormatter.dateStyle = .long
+  dateFormatter.timeStyle = .short
+
+  var updatedAt: String? = dateFormatter.string(from: answer.updatedAt!)
+  if answer.createdAt == answer.updatedAt {
+    updatedAt = nil
+    answer.updatedAt = nil
+  }
+  
+  return AnswerResponse(
+    id: "\(answer.id!)", body: answer.body, upvotes: upvoters, downvotes: downvoters,
+    createdAt: dateFormatter.string(from: answer.createdAt!), updatedAt: updatedAt,
+    createdBy: answer.user.username, url: "\(host)/answers/\(answer.id!)",
+    questionUrl: "\(host)/questions/\(answer.question.id!)"
+  )
+}

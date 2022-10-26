@@ -10,6 +10,9 @@ final class Question: Model {
   @Parent(key: "user_id")
   var user: User
 
+  @Children(for: \.$question)
+  var answers: [Answer]
+
   @Field(key: "body")
   var body: String
 
