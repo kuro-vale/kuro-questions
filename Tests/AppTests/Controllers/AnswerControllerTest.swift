@@ -85,6 +85,62 @@ final class AnswerControllerTest: XCTestCase {
     )
   }
 
+  // PUT /questions/:id
+  func testUpdate() throws {
+    let user = try newUser(on: app.db)
+    let question = try newQuestion(on: app.db, user: user)
+    let answer = try newAnswer(on: app.db, user: user, question: question)
+    let content = ["body": "I don't know"]
+    // Generate token
+    var token: String = ""
+    try app.test(
+      .POST, "auth/login",
+      beforeRequest: { req in
+        try req.content.encode(UserRequest(username: user.username, password: "password"))
+      },
+      afterResponse: { res in
+        let response = try res.content.decode(UserResponse.self)
+        token = response.token
+      }
+    )
+    // 200 if using a valid token
+    try app.test(
+      .PUT, "answers/\(answer.id!)",
+      beforeRequest: { req in
+        req.headers.bearerAuthorization = .init(token: token)
+        try req.content.encode(content)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .ok)
+        let response = try res.content.decode(AnswerResponse.self)
+        XCTAssertEqual(response.body, content["body"])
+      }
+    )
+    // 401 if token is not present
+    try app.test(
+      .PUT, "questions/\(question.id!)",
+      beforeRequest: { req in
+        try req.content.encode(content)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .unauthorized)
+      }
+    )
+    let anotherUser = try newUser("test403", on: app.db)
+    let anotherAnswer = try newAnswer(on: app.db, user: anotherUser, question: question)
+    // 403 if user is not authorized
+    try app.test(
+      .PUT, "answers/\(anotherAnswer.id!)",
+      beforeRequest: { req in
+        req.headers.bearerAuthorization = .init(token: token)
+        try req.content.encode(content)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .forbidden)
+      }
+    )
+  }
+
   override func tearDownWithError() throws {
     app.shutdown()
   }

@@ -12,8 +12,10 @@ struct AnswerController: RouteCollection {
     }
     let answers = routes.grouped("answers")
     answers.group(":answerID") { answer in
+      let authorized = answer.grouped(JWTAuthenticator())
       // Routes
       answer.get(use: getOne)
+      authorized.put(use: update)
     }
   }
 
@@ -70,6 +72,30 @@ struct AnswerController: RouteCollection {
     try await answer.$user.load(on: req.db)
     try await answer.$question.load(on: req.db)
     try await answer.$voters.load(on: req.db)
+    return answerAssembler(answer)
+  }
+
+  // PUT /answers/:id
+  func update(req: Request) async throws -> AnswerResponse {
+    let user = try req.auth.require(User.self)
+    guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
+    else {
+      throw Abort(.notFound)
+    }
+    // Lazy Eager Load
+    try await answer.$user.load(on: req.db)
+    try await answer.$question.load(on: req.db)
+    try await answer.$voters.load(on: req.db)
+    // Authorize request
+    if answer.user.id != user.id {
+      throw Abort(.forbidden)
+    }
+    // Validate Request
+    try AnswerRequest.validate(content: req)
+    let request = try req.content.decode(AnswerRequest.self)
+    // Update answer
+    answer.body = request.body
+    try await answer.update(on: req.db)
     return answerAssembler(answer)
   }
 }
