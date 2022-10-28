@@ -5,11 +5,14 @@ struct AnswerController: RouteCollection {
   func boot(routes: RoutesBuilder) throws {
     let questions = routes.grouped("questions")
     questions.group(":questionID") { question in
+      let authorized = question.grouped(JWTAuthenticator())
+      // Routes
       question.get("answers", use: index)
+      authorized.post("answers", use: create)
     }
-
     let answers = routes.grouped("answers")
     answers.group(":answerID") { answer in
+      // Routes
       answer.get(use: getOne)
     }
   }
@@ -33,6 +36,28 @@ struct AnswerController: RouteCollection {
     }
     return PaginatedAnswers(
       items: response, metadata: serverMetadataAssembler(answers.metadata, path: req.url.path))
+  }
+
+  // POST /questions/:id/answers
+  func create(req: Request) async throws -> Response {
+    let user = try req.auth.require(User.self)
+    // Get Question
+    guard let question = try await Question.find(req.parameters.get("questionID"), on: req.db)
+    else {
+      throw Abort(.notFound)
+    }
+    // Validate Request
+    try AnswerRequest.validate(content: req)
+    let request = try req.content.decode(AnswerRequest.self)
+    // Create Answer
+    let answer = Answer(request.body, question.id!, user.id!)
+    try await answer.save(on: req.db)
+    // Lazy Eager Load
+    try await answer.$user.load(on: req.db)
+    try await answer.$question.load(on: req.db)
+    try await answer.$voters.load(on: req.db)
+    let response = answerAssembler(answer)
+    return try await response.encodeResponse(status: .created, for: req)
   }
 
   // GET /answers/:id

@@ -5,12 +5,14 @@ struct QuestionController: RouteCollection {
   func boot(routes: RoutesBuilder) throws {
     let questions = routes.grouped("questions")
     let authorized = questions.grouped(JWTAuthenticator())
+    // Routes
     questions.get(use: index)
     questions.get("search", use: search)
     authorized.get("me", use: userQuestions)
     authorized.post(use: create)
     questions.group(":questionID") { question in
       let authorized = question.grouped(JWTAuthenticator())
+      // Routes
       question.get(use: getOne)
       authorized.put(use: update)
       authorized.delete(use: delete)

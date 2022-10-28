@@ -37,6 +37,17 @@ final class Answer: Model {
   }
 }
 
+struct AnswerRequest: Content {
+  var body: String
+}
+
+extension AnswerRequest: Validatable {
+  static func validations(_ validations: inout Validations) {
+    validations.add("body", as: String.self, is: !.empty)
+    validations.add("body", as: String.self, is: .count(3...1000))
+  }
+}
+
 struct AnswerResponse: Content {
   var id: String
   var body: String

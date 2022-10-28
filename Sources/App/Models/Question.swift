@@ -49,7 +49,7 @@ struct QuestionRequest: Content {
 extension QuestionRequest: Validatable {
   static func validations(_ validations: inout Validations) {
     validations.add("body", as: String.self, is: !.empty)
-    validations.add("body", as: String.self, is: .count(3...255))
+    validations.add("body", as: String.self, is: .count(3...1000))
     validations.add(
       "category", as: String.self,
       is: .in(
