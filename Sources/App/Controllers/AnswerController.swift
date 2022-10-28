@@ -16,6 +16,7 @@ struct AnswerController: RouteCollection {
       // Routes
       answer.get(use: getOne)
       authorized.put(use: update)
+      authorized.delete(use: delete)
     }
   }
 
@@ -97,5 +98,23 @@ struct AnswerController: RouteCollection {
     answer.body = request.body
     try await answer.update(on: req.db)
     return answerAssembler(answer)
+  }
+
+  // DELETE /answers/:id
+  func delete(req: Request) async throws -> HTTPStatus {
+    let user = try req.auth.require(User.self)
+    guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
+    else {
+      throw Abort(.notFound)
+    }
+    // Lazy Eager Load
+    try await answer.$user.load(on: req.db)
+    // Authorize request
+    if answer.user.id != user.id {
+      throw Abort(.forbidden)
+    }
+    // Delete answer
+    try await answer.delete(on: req.db)
+    return .noContent
   }
 }

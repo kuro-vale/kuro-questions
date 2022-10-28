@@ -85,7 +85,7 @@ final class AnswerControllerTest: XCTestCase {
     )
   }
 
-  // PUT /questions/:id
+  // PUT /answers/:id
   func testUpdate() throws {
     let user = try newUser(on: app.db)
     let question = try newQuestion(on: app.db, user: user)
@@ -118,7 +118,7 @@ final class AnswerControllerTest: XCTestCase {
     )
     // 401 if token is not present
     try app.test(
-      .PUT, "questions/\(question.id!)",
+      .PUT, "answers/\(question.id!)",
       beforeRequest: { req in
         try req.content.encode(content)
       },
@@ -134,6 +134,54 @@ final class AnswerControllerTest: XCTestCase {
       beforeRequest: { req in
         req.headers.bearerAuthorization = .init(token: token)
         try req.content.encode(content)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .forbidden)
+      }
+    )
+  }
+
+  // DELETE /answers/:id
+  func testDelete() throws {
+    let user = try newUser(on: app.db)
+    let question = try newQuestion(on: app.db, user: user)
+    let answer = try newAnswer(on: app.db, user: user, question: question)
+    // Generate token
+    var token: String = ""
+    try app.test(
+      .POST, "auth/login",
+      beforeRequest: { req in
+        try req.content.encode(UserRequest(username: user.username, password: "password"))
+      },
+      afterResponse: { res in
+        let response = try res.content.decode(UserResponse.self)
+        token = response.token
+      }
+    )
+    // 204 if using a valid token
+    try app.test(
+      .DELETE, "answers/\(answer.id!)",
+      beforeRequest: { req in
+        req.headers.bearerAuthorization = .init(token: token)
+      },
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .noContent)
+      }
+    )
+    // 401 if token is not present
+    try app.test(
+      .DELETE, "answers/\(question.id!)",
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .unauthorized)
+      }
+    )
+    let anotherUser = try newUser("test403", on: app.db)
+    let anotherAnswer = try newAnswer(on: app.db, user: anotherUser, question: question)
+    // 403 if user is not authorized
+    try app.test(
+      .DELETE, "answers/\(anotherAnswer.id!)",
+      beforeRequest: { req in
+        req.headers.bearerAuthorization = .init(token: token)
       },
       afterResponse: { res in
         XCTAssertEqual(res.status, .forbidden)
