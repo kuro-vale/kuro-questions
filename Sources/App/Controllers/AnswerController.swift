@@ -7,6 +7,11 @@ struct AnswerController: RouteCollection {
     questions.group(":questionID") { question in
       question.get("answers", use: index)
     }
+
+    let answers = routes.grouped("answers")
+    answers.group(":answerID") { answer in
+      answer.get(use: getOne)
+    }
   }
 
   // GET /questions/:id/answers
@@ -24,9 +29,22 @@ struct AnswerController: RouteCollection {
     // Generate Response
     var response: [AnswerResponse] = []
     for answer in answers.items {
-      try await response.append(answerAssembler(answer))
+      response.append(answerAssembler(answer))
     }
     return PaginatedAnswers(
       items: response, metadata: serverMetadataAssembler(answers.metadata, path: req.url.path))
+  }
+
+  // GET /answers/:id
+  func getOne(req: Request) async throws -> AnswerResponse {
+    guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
+    else {
+      throw Abort(.notFound)
+    }
+    // Lazy Eager Load
+    try await answer.$user.load(on: req.db)
+    try await answer.$question.load(on: req.db)
+    try await answer.$voters.load(on: req.db)
+    return answerAssembler(answer)
   }
 }

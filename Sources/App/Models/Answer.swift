@@ -54,7 +54,7 @@ struct PaginatedAnswers: Content {
   var metadata: ServerMetadata
 }
 
-func answerAssembler(_ answer: Answer) async throws -> AnswerResponse {
+func answerAssembler(_ answer: Answer) -> AnswerResponse {
   // Count voters
   let upvoters = answer.voters.filter { voter in voter.upvote == true }.count
   let downvoters = answer.voters.filter { voter in voter.upvote == false }.count

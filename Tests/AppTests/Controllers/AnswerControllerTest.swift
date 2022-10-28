@@ -28,6 +28,21 @@ final class AnswerControllerTest: XCTestCase {
       })
   }
 
+  // GET /answers/:id
+  func testGetOne() throws {
+    let user = try newUser(on: app.db)
+    let question = try newQuestion(on: app.db, user: user)
+    let answer = try newAnswer(on: app.db, user: user, question: question)
+
+    try app.test(
+      .GET, "answers/\(answer.id!)",
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .ok)
+        let response = try res.content.decode(AnswerResponse.self)
+        XCTAssertEqual(response.body, answer.body)
+      })
+  }
+
   override func tearDownWithError() throws {
     app.shutdown()
   }
