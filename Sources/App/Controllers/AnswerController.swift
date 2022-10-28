@@ -28,6 +28,7 @@ struct AnswerController: RouteCollection {
       throw Abort(.notFound)
     }
     // Fetch Database
+    // TODO ORDER BY MOST VOTED
     let answers = try await question.$answers.query(on: req.db).with(\.$user).with(\.$question)
       .with(\.$voters)
       .paginate(
@@ -55,10 +56,8 @@ struct AnswerController: RouteCollection {
     // Create Answer
     let answer = Answer(request.body, question.id!, user.id!)
     try await answer.save(on: req.db)
-    // Lazy Eager Load
-    try await answer.$user.load(on: req.db)
-    try await answer.$question.load(on: req.db)
-    try await answer.$voters.load(on: req.db)
+    // Generate Response
+    try await AnswerLazyEagerLoad(answer, req)
     let response = answerAssembler(answer)
     return try await response.encodeResponse(status: .created, for: req)
   }
@@ -69,28 +68,13 @@ struct AnswerController: RouteCollection {
     else {
       throw Abort(.notFound)
     }
-    // Lazy Eager Load
-    try await answer.$user.load(on: req.db)
-    try await answer.$question.load(on: req.db)
-    try await answer.$voters.load(on: req.db)
+    try await AnswerLazyEagerLoad(answer, req)
     return answerAssembler(answer)
   }
 
   // PUT /answers/:id
   func update(req: Request) async throws -> AnswerResponse {
-    let user = try req.auth.require(User.self)
-    guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
-    else {
-      throw Abort(.notFound)
-    }
-    // Lazy Eager Load
-    try await answer.$user.load(on: req.db)
-    try await answer.$question.load(on: req.db)
-    try await answer.$voters.load(on: req.db)
-    // Authorize request
-    if answer.user.id != user.id {
-      throw Abort(.forbidden)
-    }
+    let answer = try await getAuthorizedAnswer(req)
     // Validate Request
     try AnswerRequest.validate(content: req)
     let request = try req.content.decode(AnswerRequest.self)
@@ -102,17 +86,7 @@ struct AnswerController: RouteCollection {
 
   // DELETE /answers/:id
   func delete(req: Request) async throws -> HTTPStatus {
-    let user = try req.auth.require(User.self)
-    guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
-    else {
-      throw Abort(.notFound)
-    }
-    // Lazy Eager Load
-    try await answer.$user.load(on: req.db)
-    // Authorize request
-    if answer.user.id != user.id {
-      throw Abort(.forbidden)
-    }
+    let answer = try await getAuthorizedAnswer(req)
     // Delete answer
     try await answer.delete(on: req.db)
     return .noContent
