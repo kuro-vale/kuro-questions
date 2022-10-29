@@ -8,6 +8,12 @@ func createVote(upvote: Bool, req: Request) async throws -> HTTPStatus {
   else {
     throw Abort(.notFound)
   }
+  // Try to get previous vote
+  if let vote = try await Voter.query(on: req.db).filter(\.$user.$id == user.id!).filter(
+    \.$answer.$id == answer.id!
+  ).first() {
+    try await vote.delete(on: req.db)
+  }
   // Create Vote
   let upvote = Voter(userId: user.id!, answerId: answer.id!, upvote: upvote)
   do {
