@@ -2,7 +2,7 @@ import XCTVapor
 
 @testable import App
 
-final class VoteAnswerControllerTest: XCTestCase {
+final class VoteControllerTest: XCTestCase {
   var app: Application!
 
   override func setUpWithError() throws {
@@ -105,6 +105,32 @@ final class VoteAnswerControllerTest: XCTestCase {
         XCTAssertEqual(res.status, .unauthorized)
       }
     )
+  }
+
+  // GET /answers/:id/upvotes or GET /answers/:id/downvotes
+  func testIndex() throws {
+    let user = try newUser(on: app.db)
+    let user2 = try newUser("user2", on: app.db)
+    let question = try newQuestion(on: app.db, user: user)
+    let answer = try newAnswer(on: app.db, user: user, question: question)
+    let _ = try newVote(on: app.db, user: user, answer: answer, upvote: true)
+    let _ = try newVote(on: app.db, user: user2, answer: answer, upvote: false)
+    try app.test(
+      .GET, "answers/\(answer.id!)/upvotes",
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .ok)
+        let response = try res.content.decode([VoteResponse].self)
+        XCTAssertEqual(response.count, 1)
+        XCTAssertEqual(response[0].username, user.username)
+      })
+    try app.test(
+      .GET, "answers/\(answer.id!)/downvotes",
+      afterResponse: { res in
+        XCTAssertEqual(res.status, .ok)
+        let response = try res.content.decode([VoteResponse].self)
+        XCTAssertEqual(response.count, 1)
+        XCTAssertEqual(response[0].username, user2.username)
+      })
   }
 
   override func tearDownWithError() throws {

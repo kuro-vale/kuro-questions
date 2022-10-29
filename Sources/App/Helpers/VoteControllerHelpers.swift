@@ -23,3 +23,19 @@ func createVote(upvote: Bool, req: Request) async throws -> HTTPStatus {
   }
   return .created
 }
+
+func getVotes(upvote: Bool, req: Request) async throws -> [VoteResponse] {
+  // Get Answer
+  guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
+  else {
+    throw Abort(.notFound)
+  }
+  let upvotes = try await answer.$votes.query(on: req.db).filter(\.$upvote == upvote).all()
+  // Generate response
+  var response: [VoteResponse] = []
+  for upvote in upvotes {
+    try await upvote.$user.load(on: req.db)
+    response.append(VoteResponse(username: upvote.user.username))
+  }
+  return response
+}

@@ -24,3 +24,7 @@ final class Vote: Model {
     self.upvote = upvote
   }
 }
+
+struct VoteResponse: Content {
+  var username: String
+}

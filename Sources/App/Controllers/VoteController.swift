@@ -1,32 +1,45 @@
 import Fluent
 import Vapor
 
-struct VoteAnswerController: RouteCollection {
+struct VoteController: RouteCollection {
   func boot(routes: RoutesBuilder) throws {
-    let authorized = routes.grouped(JWTAuthenticator())
-    let answers = authorized.grouped("answers")
+    let answers = routes.grouped("answers")
     answers.group(":answerID") { answer in
       answer.group("upvotes") { upvote in
+        let authorized = upvote.grouped(JWTAuthenticator())
         // Routes
-        upvote.post(use: createUpvote)
-        upvote.delete(use: deleteVote)
+        upvote.get(use: getUpvotes)
+        authorized.post(use: createUpvote)
+        authorized.delete(use: deleteVote)
       }
       answer.group("downvotes") { downvote in
+        let authorized = downvote.grouped(JWTAuthenticator())
         // Routes
-        downvote.post(use: createDownvote)
-        downvote.delete(use: deleteVote)
+        downvote.get(use: getDownvotes)
+        authorized.post(use: createDownvote)
+        authorized.delete(use: deleteVote)
       }
     }
   }
 
   // POST /answers/:id/upvotes
   func createUpvote(req: Request) async throws -> HTTPStatus {
-    return try await createVote(upvote: true, req: req)
+    try await createVote(upvote: true, req: req)
+  }
+
+  // GET /answers/:id/upvotes
+  func getUpvotes(req: Request) async throws -> [VoteResponse] {
+    try await getVotes(upvote: true, req: req)
+  }
+
+  // GET /answers/:id/downvotes
+  func getDownvotes(req: Request) async throws -> [VoteResponse] {
+    try await getVotes(upvote: false, req: req)
   }
 
   // POST /answers/:id/downvotes
   func createDownvote(req: Request) async throws -> HTTPStatus {
-    return try await createVote(upvote: false, req: req)
+    try await createVote(upvote: false, req: req)
   }
 
   // DELETE /answer/:id/upvotes or DELETE /answer/:id/downvotes
