@@ -12,25 +12,18 @@ struct VoteAnswerController: RouteCollection {
       }
       answer.group("downvotes") { downvote in
         // Routes
+        downvote.post(use: createDownvote)
       }
     }
   }
 
   // POST /answers/:id/upvotes
   func createUpvote(req: Request) async throws -> HTTPStatus {
-    let user = try req.auth.require(User.self)
-    // Get Answer
-    guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
-    else {
-      throw Abort(.notFound)
-    }
-    // Create Vote
-    let upvote = Voter(userId: user.id!, answerId: answer.id!, upvote: true)
-    do {
-      try await upvote.save(on: req.db)
-    } catch {
-      throw Abort(.badRequest)
-    }
-    return .created
+    return try await createVote(upvote: true, req: req)
+  }
+
+  // POST /answers/:id/downvotes
+  func createDownvote(req: Request) async throws -> HTTPStatus {
+    return try await createVote(upvote: false, req: req)
   }
 }
