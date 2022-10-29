@@ -1,6 +1,7 @@
 import Fluent
 import Vapor
 
+/// Database User model
 final class User: Model, Authenticatable {
   static let schema = "users"
 
@@ -33,11 +34,13 @@ final class User: Model, Authenticatable {
   }
 }
 
+/// User response with auth token
 struct UserResponse: Content {
   var username: String
   var token: String
 }
 
+/// User model for HTTP requests
 struct UserRequest: Content {
   var username: String
   var password: String
@@ -50,11 +53,13 @@ extension UserRequest: Validatable {
   }
 }
 
+/// Get current user HTTP response
 struct CurrentUser: Content {
   var id: UUID
   var username: String
 }
 
+/// Generate a `UserResponse`
 func userAssembler(_ user: User, token: String) -> UserResponse {
   return UserResponse(username: user.username, token: token)
 }

@@ -1,6 +1,7 @@
 import Fluent
 import Vapor
 
+/// Database Question model
 final class Question: Model {
   static let schema = "questions"
 
@@ -41,6 +42,7 @@ final class Question: Model {
   }
 }
 
+/// Question model for HTTP requests
 struct QuestionRequest: Content {
   var body: String
   var category: Category
@@ -60,6 +62,7 @@ extension QuestionRequest: Validatable {
   }
 }
 
+/// Question model for HTTP responses
 struct QuestionResponse: Content {
   var id: String
   var body: String
@@ -71,11 +74,13 @@ struct QuestionResponse: Content {
   var createdBy: String
 }
 
+/// Question response model with pagination metadata
 struct PaginatedQuestions: Content {
   var items: [QuestionResponse]
   var metadata: ServerMetadata
 }
 
+/// Generate a `QuestionResponse`
 func questionAssembler(_ question: Question) -> QuestionResponse {
   let host = Environment.get("APP_HOSTNAME") ?? "127.0.0.1"
   let dateFormatter = DateFormatter()

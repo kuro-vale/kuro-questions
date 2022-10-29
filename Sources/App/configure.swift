@@ -7,8 +7,11 @@ import Vapor
 public func configure(_ app: Application) throws {
   // uncomment to serve files from /Public folder
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+
+  // Set JWT sign secret
   app.jwt.signers.use(.hs256(key: Environment.get("JWT_SECRET") ?? "vapor_secret"))
 
+  // Configure Database
   let databaseName: String
 
   if app.environment == .testing {
@@ -27,6 +30,7 @@ public func configure(_ app: Application) throws {
       database: databaseName
     ), as: .psql)
 
+  // Register migrations
   app.migrations.add(CreateUser())
   app.migrations.add(CreateQuestion())
   app.migrations.add(CreateAnswer())
@@ -34,6 +38,6 @@ public func configure(_ app: Application) throws {
   // Run migrations
   try app.autoMigrate().wait()
 
-  // register routes
+  // Register routes
   try routes(app)
 }

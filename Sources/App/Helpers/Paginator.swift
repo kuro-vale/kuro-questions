@@ -1,6 +1,7 @@
 import Fluent
 import Vapor
 
+/// Custom HATEOAS metadata
 struct ServerMetadata: Content {
   var first: String
   var last: String
@@ -11,6 +12,7 @@ struct ServerMetadata: Content {
   var per: Int
 }
 
+/// Generate a `ServerMetadata` model
 func serverMetadataAssembler(_ metadata: PageMetadata, path: String, query: String = "")
   -> ServerMetadata
 {

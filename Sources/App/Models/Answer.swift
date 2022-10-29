@@ -1,6 +1,7 @@
 import Fluent
 import Vapor
 
+/// Database answer model
 final class Answer: Model {
   static let schema = "answers"
 
@@ -37,6 +38,7 @@ final class Answer: Model {
   }
 }
 
+/// Answer model for HTTP requests
 struct AnswerRequest: Content {
   var body: String
 }
@@ -48,6 +50,7 @@ extension AnswerRequest: Validatable {
   }
 }
 
+/// Answer model for HTTP responses
 struct AnswerResponse: Content {
   var id: String
   var body: String
@@ -60,11 +63,13 @@ struct AnswerResponse: Content {
   var questionUrl: String
 }
 
+/// Answer response model with pagination metadata
 struct PaginatedAnswers: Content {
   var items: [AnswerResponse]
   var metadata: ServerMetadata
 }
 
+/// Generate an `AnswerResponse`
 func answerAssembler(_ answer: Answer) -> AnswerResponse {
   // Count votes
   let upvotes = answer.votes.filter { vote in vote.upvote == true }.count

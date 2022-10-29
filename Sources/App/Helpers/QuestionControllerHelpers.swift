@@ -1,6 +1,12 @@
 import Fluent
 import Vapor
 
+/// Retrieve and authorize a question
+///
+/// - Throws: `.forbidden`
+///           if `question` doesn't belong to user
+///
+/// - Returns: user's question.
 func getAuthorizedQuestion(req: Request) async throws -> Question {
   let user = try req.auth.require(User.self)
   // Fetch database
@@ -17,8 +23,12 @@ func getAuthorizedQuestion(req: Request) async throws -> Question {
   return question
 }
 
+/// Query all questions by body and category
+///
+/// - Parameter user: filter questions by user
+/// - Returns: assembled response and page metadata
 func queryQuestions(_ req: Request, _ user: User? = nil) async throws -> (
-  Page<Question>, [QuestionResponse]
+  PageMetadata, [QuestionResponse]
 ) {
   // Get Query
   let body = req.query["q"] ?? ""
@@ -40,5 +50,5 @@ func queryQuestions(_ req: Request, _ user: User? = nil) async throws -> (
   for question in questions.items {
     response.append(questionAssembler(question))
   }
-  return (questions, response)
+  return (questions.metadata, response)
 }

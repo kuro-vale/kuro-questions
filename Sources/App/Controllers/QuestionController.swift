@@ -37,21 +37,21 @@ struct QuestionController: RouteCollection {
 
   // GET /questions/search?q=&category=
   func search(req: Request) async throws -> PaginatedQuestions {
-    let (questions, response) = try await queryQuestions(req)
+    let (metadata, response) = try await queryQuestions(req)
     return PaginatedQuestions(
       items: response,
       metadata: serverMetadataAssembler(
-        questions.metadata, path: req.url.path, query: req.url.query ?? ""))
+        metadata, path: req.url.path, query: req.url.query ?? ""))
   }
 
   // GET /questions/me
   func userQuestions(req: Request) async throws -> PaginatedQuestions {
     let user = try req.auth.require(User.self)
-    let (questions, response) = try await queryQuestions(req, user)
+    let (metadata, response) = try await queryQuestions(req, user)
     return PaginatedQuestions(
       items: response,
       metadata: serverMetadataAssembler(
-        questions.metadata, path: req.url.path, query: req.url.query ?? ""))
+        metadata, path: req.url.path, query: req.url.query ?? ""))
   }
 
   // GET /questions/:id

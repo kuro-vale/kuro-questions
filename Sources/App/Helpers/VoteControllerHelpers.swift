@@ -1,6 +1,9 @@
 import Fluent
 import Vapor
 
+/// Store a vote in database, if user already vote, try to delete previous vote
+///
+/// - Parameter upvote: false to create a downvote
 func createVote(upvote: Bool, req: Request) async throws -> HTTPStatus {
   let user = try req.auth.require(User.self)
   // Get Answer
@@ -24,6 +27,9 @@ func createVote(upvote: Bool, req: Request) async throws -> HTTPStatus {
   return .created
 }
 
+/// Get answer's votes
+///
+/// - Parameter upvote: false to get all downvotes
 func getVotes(upvote: Bool, req: Request) async throws -> [VoteResponse] {
   // Get Answer
   guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)

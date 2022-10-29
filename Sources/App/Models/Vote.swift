@@ -1,6 +1,7 @@
 import Fluent
 import Vapor
 
+/// Database vote model
 final class Vote: Model {
   static let schema = "votes"
 
@@ -25,6 +26,7 @@ final class Vote: Model {
   }
 }
 
+/// Vote model for HTTP responses
 struct VoteResponse: Content {
   var username: String
 }

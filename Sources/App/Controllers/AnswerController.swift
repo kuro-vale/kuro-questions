@@ -57,7 +57,7 @@ struct AnswerController: RouteCollection {
     let answer = Answer(request.body, question.id!, user.id!)
     try await answer.save(on: req.db)
     // Generate Response
-    try await AnswerLazyEagerLoad(answer, req)
+    try await answerLazyEagerLoad(answer, req)
     let response = answerAssembler(answer)
     return try await response.encodeResponse(status: .created, for: req)
   }
@@ -68,7 +68,7 @@ struct AnswerController: RouteCollection {
     else {
       throw Abort(.notFound)
     }
-    try await AnswerLazyEagerLoad(answer, req)
+    try await answerLazyEagerLoad(answer, req)
     return answerAssembler(answer)
   }
 
