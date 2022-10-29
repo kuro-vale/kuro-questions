@@ -9,6 +9,7 @@ func AnswerLazyEagerLoad(_ answer: Answer, _ req: Request) async throws {
 
 func getAuthorizedAnswer(_ req: Request) async throws -> Answer {
   let user = try req.auth.require(User.self)
+  // Get Answer
   guard let answer = try await Answer.find(req.parameters.get("answerID"), on: req.db)
   else {
     throw Abort(.notFound)

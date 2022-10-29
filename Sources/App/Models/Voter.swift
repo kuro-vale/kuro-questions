@@ -18,7 +18,7 @@ final class Voter: Model {
 
   init() {}
 
-  init(userId: UUID, answerId: UUID, upvote: Bool) throws {
+  init(userId: UUID, answerId: UUID, upvote: Bool) {
     self.$user.id = userId
     self.$answer.id = answerId
     self.upvote = upvote

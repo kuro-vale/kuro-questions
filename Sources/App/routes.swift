@@ -17,4 +17,6 @@ func routes(_ app: Application) throws {
   try app.register(collection: UserController())
 
   try app.register(collection: AnswerController())
+
+  try app.register(collection: VoteAnswerController())
 }
