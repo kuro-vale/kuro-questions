@@ -14,7 +14,7 @@ struct CreateAnswer: AsyncMigration {
       .field("deleted_at", .datetime)
       .create()
 
-    try await database.schema("voters")
+    try await database.schema("votes")
       .id()
       .field("upvote", .bool, .required)
       .field("user_id", .uuid, .required)
@@ -26,7 +26,7 @@ struct CreateAnswer: AsyncMigration {
   }
 
   func revert(on database: Database) async throws {
-    try await database.schema("voters").delete()
+    try await database.schema("votes").delete()
     try await database.schema("answers").delete()
   }
 }

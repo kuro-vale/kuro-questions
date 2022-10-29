@@ -30,7 +30,7 @@ struct AnswerController: RouteCollection {
     // Fetch Database
     // TODO ORDER BY MOST VOTED
     let answers = try await question.$answers.query(on: req.db).with(\.$user).with(\.$question)
-      .with(\.$voters)
+      .with(\.$votes)
       .paginate(
         PageRequest(page: req.query["page"] ?? 1, per: 10))
     // Generate Response

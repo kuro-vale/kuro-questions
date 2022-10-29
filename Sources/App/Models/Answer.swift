@@ -17,7 +17,7 @@ final class Answer: Model {
   var body: String
 
   @Children(for: \.$answer)
-  var voters: [Voter]
+  var votes: [Vote]
 
   @Timestamp(key: "created_at", on: .create)
   var createdAt: Date?
@@ -66,9 +66,9 @@ struct PaginatedAnswers: Content {
 }
 
 func answerAssembler(_ answer: Answer) -> AnswerResponse {
-  // Count voters
-  let upvoters = answer.voters.filter { voter in voter.upvote == true }.count
-  let downvoters = answer.voters.filter { voter in voter.upvote == false }.count
+  // Count votes
+  let upvotes = answer.votes.filter { vote in vote.upvote == true }.count
+  let downvotes = answer.votes.filter { vote in vote.upvote == false }.count
   // Generate response metadata
   let host = Environment.get("APP_HOSTNAME") ?? "127.0.0.1"
   let dateFormatter = DateFormatter()
@@ -82,7 +82,7 @@ func answerAssembler(_ answer: Answer) -> AnswerResponse {
   }
 
   return AnswerResponse(
-    id: "\(answer.id!)", body: answer.body, upvotes: upvoters, downvotes: downvoters,
+    id: "\(answer.id!)", body: answer.body, upvotes: upvotes, downvotes: downvotes,
     createdAt: dateFormatter.string(from: answer.createdAt!), updatedAt: updatedAt,
     createdBy: answer.user.username, url: "\(host)/answers/\(answer.id!)",
     questionUrl: "\(host)/questions/\(answer.question.id!)"

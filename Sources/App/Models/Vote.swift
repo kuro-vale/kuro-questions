@@ -1,8 +1,8 @@
 import Fluent
 import Vapor
 
-final class Voter: Model {
-  static let schema = "voters"
+final class Vote: Model {
+  static let schema = "votes"
 
   @ID(key: .id)
   var id: UUID?

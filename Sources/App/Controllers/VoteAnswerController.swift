@@ -39,7 +39,7 @@ struct VoteAnswerController: RouteCollection {
     }
     // Get Vote
     guard
-      let vote = try await Voter.query(on: req.db).filter(\.$user.$id == user.id!).filter(
+      let vote = try await Vote.query(on: req.db).filter(\.$user.$id == user.id!).filter(
         \.$answer.$id == answer.id!
       ).first()
     else {

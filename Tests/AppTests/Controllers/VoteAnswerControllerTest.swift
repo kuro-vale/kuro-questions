@@ -64,7 +64,7 @@ final class VoteAnswerControllerTest: XCTestCase {
     let user = try newUser(on: app.db)
     let question = try newQuestion(on: app.db, user: user)
     let answer = try newAnswer(on: app.db, user: user, question: question)
-    let _ = try newVoter(on: app.db, user: user, answer: answer, upvote: true)
+    let _ = try newVote(on: app.db, user: user, answer: answer, upvote: true)
     // Generate token
     var token: String = ""
     try app.test(
@@ -87,7 +87,7 @@ final class VoteAnswerControllerTest: XCTestCase {
         XCTAssertEqual(res.status, .noContent)
       }
     )
-    let _ = try newVoter(on: app.db, user: user, answer: answer, upvote: false)
+    let _ = try newVote(on: app.db, user: user, answer: answer, upvote: false)
     // 200 if using a valid token
     try app.test(
       .DELETE, "answers/\(answer.id!)/downvotes",
