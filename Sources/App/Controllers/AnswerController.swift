@@ -28,7 +28,6 @@ struct AnswerController: RouteCollection {
       throw Abort(.notFound)
     }
     // Fetch Database
-    // TODO ORDER BY MOST VOTED
     let answers = try await question.$answers.query(on: req.db).with(\.$user).with(\.$question)
       .with(\.$votes)
       .paginate(
@@ -38,6 +37,8 @@ struct AnswerController: RouteCollection {
     for answer in answers.items {
       response.append(answerAssembler(answer))
     }
+    response.sort { $0.downvotes < $1.downvotes }
+    response.sort { $0.upvotes > $1.upvotes }
     return PaginatedAnswers(
       items: response, metadata: serverMetadataAssembler(answers.metadata, path: req.url.path))
   }
