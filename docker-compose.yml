@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres
+    user: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=vapor_password
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  app:
+    image: kurovale/kuro-questions
+    build:
+      context: .
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      DATABASE_HOST: db
+      DATABASE_NAME: postgres
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: vapor_password
+      JWT_SECRET: supersecret
+      APP_HOSTNAME: 127.0.0.1:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '8080:8080'
+    # user: '0' # uncomment to run as root for testing purposes even though Dockerfile defines 'vapor' user.
+    command:
+      [
+        "serve",
+        "--env",
+        "production",
+        "--hostname",
+        "0.0.0.0",
+        "--port",
+        "8080"
+      ]
