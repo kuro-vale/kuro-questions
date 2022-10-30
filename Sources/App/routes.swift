@@ -3,7 +3,7 @@ import Vapor
 
 func routes(_ app: Application) throws {
   app.get { req async in
-    "It works!"
+    req.redirect(to: "index.html")
   }
 
   app.get("health") { req async -> String in
