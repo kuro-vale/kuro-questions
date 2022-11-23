@@ -13,22 +13,23 @@ struct ServerMetadata: Content {
 }
 
 /// Generate a `ServerMetadata` model
-func serverMetadataAssembler(_ metadata: PageMetadata, path: String, query: String = "")
+func serverMetadataAssembler(_ metadata: PageMetadata, reqUrl: URI)
   -> ServerMetadata
 {
   let host = Environment.get("APP_HOSTNAME") ?? "127.0.0.1"
-  var ampersand = ""
-  if query != "" {
-    ampersand = "&"
+  var url = reqUrl.string
+  if !url.contains("page=") {
+    url += ((url.contains("?")) ? "&" : "?") + "page=1"
   }
-
+  let regex = try! NSRegularExpression(pattern: "(page=)\\d")
+  let range = NSMakeRange(0, url.count)
   // Example url host/questions/search?page=1&q=example
   let lastPage = Int(ceil(Double(metadata.total) / Double(metadata.per)))
-  let first = "\(host)\(path)?page=1\(ampersand)\(query)"
-  let last = "\(host)\(path)?page=\(lastPage)\(ampersand)\(query)"
-  let current = "\(host)\(path)?page=\(metadata.page)\(ampersand)\(query)"
-  var previous: String? = "\(host)\(path)?page=\(metadata.page - 1)\(ampersand)\(query)"
-  var next: String? = "\(host)\(path)?page=\(metadata.page + 1)\(ampersand)\(query)"
+  let first = "\(host)\(regex.stringByReplacingMatches(in: url, options: [], range: range, withTemplate: "$11"))"
+  let last = "\(host)\(regex.stringByReplacingMatches(in: url, options: [], range: range, withTemplate: "$1\(lastPage)"))"
+  let current = "\(host)\(regex.stringByReplacingMatches(in: url, options: [], range: range, withTemplate: "$1\(metadata.page)"))"
+  var previous: String? = "\(host)\(regex.stringByReplacingMatches(in: url, options: [], range: range, withTemplate: "$1\(metadata.page - 1)"))"
+  var next: String? = "\(host)\(regex.stringByReplacingMatches(in: url, options: [], range: range, withTemplate: "$1\(metadata.page + 1)"))"
 
   if metadata.page <= 1 {
     previous = nil

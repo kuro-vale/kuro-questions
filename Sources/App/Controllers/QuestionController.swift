@@ -32,7 +32,7 @@ struct QuestionController: RouteCollection {
       response.append(questionAssembler(question))
     }
     return PaginatedQuestions(
-      items: response, metadata: serverMetadataAssembler(questions.metadata, path: req.url.path))
+      items: response, metadata: serverMetadataAssembler(questions.metadata, reqUrl: req.url))
   }
 
   // GET /questions/search?q=&category=
@@ -41,7 +41,7 @@ struct QuestionController: RouteCollection {
     return PaginatedQuestions(
       items: response,
       metadata: serverMetadataAssembler(
-        metadata, path: req.url.path, query: req.url.query ?? ""))
+        metadata, reqUrl: req.url))
   }
 
   // GET /questions/me
@@ -51,7 +51,7 @@ struct QuestionController: RouteCollection {
     return PaginatedQuestions(
       items: response,
       metadata: serverMetadataAssembler(
-        metadata, path: req.url.path, query: req.url.query ?? ""))
+        metadata, reqUrl: req.url))
   }
 
   // GET /questions/:id

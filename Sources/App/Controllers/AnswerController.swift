@@ -40,7 +40,7 @@ struct AnswerController: RouteCollection {
     response.sort { $0.downvotes < $1.downvotes }
     response.sort { $0.upvotes > $1.upvotes }
     return PaginatedAnswers(
-      items: response, metadata: serverMetadataAssembler(answers.metadata, path: req.url.path))
+      items: response, metadata: serverMetadataAssembler(answers.metadata, reqUrl: req.url))
   }
 
   // POST /questions/:id/answers
