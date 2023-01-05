@@ -38,7 +38,7 @@ func queryQuestions(_ req: Request, _ user: User? = nil) async throws -> (
   } else {
     query = Question.query(on: req.db).with(\.$user)
   }
-  query.filter(\.$body, .custom("ilike"), "%\(body)%")
+  query.filter(\.$body, .custom("like"), "%\(body)%")
   if let category = Category.init(rawValue: req.query["category"] ?? "") {
     query.filter(\.$category == category)
   }

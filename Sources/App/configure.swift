@@ -1,5 +1,5 @@
 import Fluent
-import FluentPostgresDriver
+import FluentSQLiteDriver
 import JWT
 import Vapor
 
@@ -10,24 +10,7 @@ public func configure(_ app: Application) throws {
   // Set JWT sign secret
   app.jwt.signers.use(.hs256(key: Environment.get("JWT_SECRET") ?? "vapor_secret"))
 
-  // Configure Database
-  let databaseName: String
-
-  if app.environment == .testing {
-    databaseName = Environment.get("TEST_DATABASE_NAME") ?? "vapor_test"
-  } else {
-    databaseName = Environment.get("DATABASE_NAME") ?? "vapor_database"
-  }
-
-  app.databases.use(
-    .postgres(
-      hostname: Environment.get("DATABASE_HOST") ?? "localhost",
-      port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:))
-        ?? PostgresConfiguration.ianaPortNumber,
-      username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
-      password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-      database: databaseName
-    ), as: .psql)
+  app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
 
   // Register migrations
   app.migrations.add(CreateUser())
