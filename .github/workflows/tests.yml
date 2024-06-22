@@ -23,7 +23,7 @@ jobs:
           POSTGRES_USER: vapor_username
           POSTGRES_PASSWORD: vapor_password
           POSTGRES_DB: vapor_database
-    container: swift:5.6-focal
+    container: swift:5.7-jammy
     steps:
       - name: checkout
         uses: actions/checkout@v3
